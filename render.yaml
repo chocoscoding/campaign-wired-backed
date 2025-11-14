@@ -1,0 +1,81 @@
+services:
+  # Colla Code Backend API
+  - type: web
+    name: colla-code-backend
+    runtime: node
+    region: oregon # Change to your preferred region (oregon, frankfurt, singapore, etc.)
+    plan: free # Options: free, starter, standard, pro, pro plus, pro max, pro ultra
+    branch: master # Git branch to deploy
+    buildCommand: npm install && npm run build
+    startCommand: npm start
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      
+      - key: PORT
+        value: 8000
+      
+      # Vonage API Configuration
+      - key: VONAGE_API_KEY
+        sync: false
+      
+      - key: VONAGE_API_SECRET
+        sync: false
+      
+      - key: VONAGE_APPLICATION_ID
+        sync: false
+      
+      - key: VONAGE_PRIVATE_KEY
+        sync: false
+      
+      - key: VONAGE_VIRTUAL_NUMBER
+        sync: false
+      
+      - key: VONAGE_WEBHOOK_SIGNER
+        sync: false
+      
+      # SMTP Configuration (MailerSend)
+      - key: SMTP_HOST
+        sync: false
+      
+      - key: SMTP_PORT
+        sync: false
+      
+      - key: SMTP_USER
+        sync: false
+      
+      - key: SMTP_PASS
+        sync: false
+      
+      - key: FROM_EMAIL
+        sync: false
+      
+      - key: FROM_NAME
+        value: Colla Campaign System
+      
+      # Email Configuration (Optional)
+      - key: EMAIL_FROM_ADDRESS
+        sync: false
+      
+      - key: EMAIL_FROM_NAME
+        value: Colla Campaign
+      
+      # CORS Configuration (Optional - defaults to campaignwired.com)
+      - key: ALLOWED_ORIGINS
+        value: https://campaignwired.com,https://www.campaignwired.com
+    
+    # Auto-deploy on git push
+    autoDeploy: true
+    
+    # Disk storage (if needed for logs, temporary files, etc.)
+    # disk:
+    #   name: colla-backend-disk
+    #   mountPath: /var/data
+    #   sizeGB: 215
+    
+
+    # Scaling configuration (for paid plans)
+    # numInstances: 1
+    # minInstances: 1
+    # maxInstances: 3
