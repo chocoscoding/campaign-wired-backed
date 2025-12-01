@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import messagesService from '../services/messagesService';
 import emailService from '../services/emailService';
+import { getUserSmtpConfig } from '../middleware/auth';
 
 export async function sendMessage(req: Request, res: Response) {
   const to: string | undefined = req.body?.to || process.env.MESSAGES_TO_NUMBER;
@@ -43,12 +44,23 @@ export async function sendEmail(req: Request, res: Response) {
   }
 
   try {
+    // Check if user has custom SMTP config
+    let smtpConfig = null;
+    if (req.user?.id) {
+      try {
+        smtpConfig = await getUserSmtpConfig(req.user.id);
+      } catch (error) {
+        console.warn('Failed to fetch user SMTP config:', error);
+      }
+    }
+
     const result = await emailService.sendEmail({
       to: [{ email: to, name: toName, substitutionData }],
       from: { email: fromEmail, name: fromName },
       subject,
       html,
       text,
+      smtpConfig: smtpConfig || undefined,
     });
 
     return res.json({ success: true, result });
@@ -81,6 +93,16 @@ export async function sendBulkEmail(req: Request, res: Response) {
   }
 
   try {
+    // Check if user has custom SMTP config
+    let smtpConfig = null;
+    if (req.user?.id) {
+      try {
+        smtpConfig = await getUserSmtpConfig(req.user.id);
+      } catch (error) {
+        console.warn('Failed to fetch user SMTP config:', error);
+      }
+    }
+
     const result = await emailService.sendEmail({
       to: recipients.map((r: any) => ({
         email: r.email,
@@ -92,6 +114,7 @@ export async function sendBulkEmail(req: Request, res: Response) {
       html,
       text,
       substitutionData: globalSubstitutionData,
+      smtpConfig: smtpConfig || undefined,
     });
 
     return res.json({ success: true, result, recipients: recipients.length });

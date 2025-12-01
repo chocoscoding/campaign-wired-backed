@@ -66,6 +66,10 @@ app.use('/messages', messagesRouter);
 import webhooksRouter from './routes/webhooks';
 app.use('/webhook', webhooksRouter);
 
+// SMTP routes
+import smtpRouter from './routes/smtp';
+app.use('/api/smtp', smtpRouter);
+
 // Error handling middleware
 app.use((err: any, req: Request, res: Response, next: any) => {
   console.error(err.stack);

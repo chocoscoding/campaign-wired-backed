@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import vonageService from '../services/vonageService';
 import messagesService from '../services/messagesService';
 import emailService from '../services/emailService';
+import { getUserSmtpConfig } from '../middleware/auth';
 
 // Helper to delay execution
 const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -101,6 +102,19 @@ export async function executeCampaign(req: Request, res: Response) {
   const results: any[] = [];
 
   try {
+    // Check if user has custom SMTP config (if authenticated)
+    let smtpConfig = null;
+    if (req.user?.id) {
+      try {
+        smtpConfig = await getUserSmtpConfig(req.user.id);
+        if (smtpConfig) {
+          console.log('Using custom SMTP configuration for campaign');
+        }
+      } catch (error) {
+        console.warn('Failed to fetch user SMTP config:', error);
+      }
+    }
+
     // Process contacts with delay
     for (let i = 0; i < contacts.length; i++) {
       const contact = contacts[i];
@@ -127,6 +141,7 @@ export async function executeCampaign(req: Request, res: Response) {
               html: emailHtml,
               text: emailText || 'Hello from Colla Campaign',
               substitutionData: emailSubstitutionData, // Global substitution data
+              smtpConfig: smtpConfig || undefined, // Use custom SMTP if available
             });
             contactResult.results.email = { success: true, result: emailResult };
           } catch (err: any) {
